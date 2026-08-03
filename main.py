@@ -43,7 +43,10 @@ async def command_start(message: Message):
         "📌 /check - узнать, сколько дней осталось до оплаты."
     )
     await message.answer(text)
-    await bot.send_message(chat_id=mer_id, text=f"@{message.from_user.username} включил бота.")
+    try:
+        await bot.send_message(chat_id=mer_id, text=f"@{message.from_user.username} включил бота.")
+    except Exception as e:
+        logging.warning(f"Не удалось уведомить админа: {e}")
 
 async def get_status_message(days_left: int, expire_date: str) -> str:
     status = f"Осталось {days_left} д."
@@ -78,7 +81,10 @@ async def command_check(message: Message):
 
     status_text = await get_status_message(days_left, date.strftime('%d.%m.%Y'))
     await message.answer(status_text)
-    await bot.send_message(chat_id=mer_id, text=f"@{message.from_user.username} проверил свою оплату: @{message.from_user.username} осталось {days_left} д. до оплаты.")
+    try:
+        await bot.send_message(chat_id=mer_id, text=f"@{message.from_user.username} осталось {days_left} д. до оплаты.")
+    except Exception as e:
+        logging.warning(f"Не удалось уведомить админа: {e}")
 
 REMIND_DAYS = [3, 1, 0]
 async def reminder_loop():
@@ -98,8 +104,16 @@ async def reminder_loop():
 
             if (days_left in REMIND_DAYS or days_left <= 0) and notified != today:
                 status_text = await get_status_message(days_left, expire.strftime('%d.%m.%Y'))
-                await bot.send_message(int(user_id), text=status_text)
-                await bot.send_message(chat_id=mer_id, text=f"@{info['username']} проверил свою оплату: @{info['username']} осталось {days_left} д. до оплаты.")
+                try:
+                    await bot.send_message(int(user_id), text=status_text)
+                except Exception as e:
+                    logging.warning(f"Не удалось отправить сообщение {user_id}: {e}")
+
+                try:
+                    await bot.send_message(chat_id=mer_id, text=f"@{info['username']} осталось {days_left} д. до оплаты.")
+                except Exception as e:
+                    logging.warning(f"Не удалось отправить сообщение mer_id: {e}")
+
                 info['notified'] = today
                 changed = True
 
