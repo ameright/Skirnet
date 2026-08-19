@@ -114,9 +114,6 @@ async def command_update(message: Message):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
    await message.answer(f"✅ Дата оплаты для @{username} обновлена на {date_str}.")
-           
-       
-   
 
 REMIND_DAYS = [3, 1, 0]
 async def reminder_loop():
